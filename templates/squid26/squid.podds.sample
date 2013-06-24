@@ -1,0 +1,72 @@
+cache_effective_user squiduser
+#listen on port 3128; the origin server is app-podds.sbetprod.ads
+http_port 3128 accel defaultsite=app-podds.sbetprod.ads
+#as above 
+cache_peer app-podds.sbetprod.ads parent 8080 0 no-query default 
+cache_peer 10.196.4.49 sibling 3128 3130
+connect_timeout 10 seconds
+read_timeout 10 seconds
+
+maximum_object_size 100 MB
+coredump_dir /var/spool/squid
+access_log /var/log/squid/access.log squid
+cache_store_log none
+
+acl all src 0.0.0.0/0.0.0.0
+acl manager proto cache_object
+acl localhost src 127.0.0.1/32
+acl to_localhost dst 127.0.0.0/8
+acl SSL_ports port 443
+acl Safe_ports port 80 # http
+acl Safe_ports port 443 # https
+acl Safe_ports port 1025-65535 # unregistered ports
+acl Safe_ports port 280 # http-mgmt
+acl Safe_ports port 488 # gss-http
+acl Safe_ports port 777 # multiling http
+acl CONNECT method CONNECT
+acl health_page urlpath_regex health
+no_cache deny health_page
+cache allow all
+cache_mem 1536 MB
+cache_dir null /var/spool/squid
+
+acl snmppublic snmp_community public
+snmp_port 3401
+snmp_access allow snmppublic all
+
+http_access allow manager localhost
+http_access deny manager
+http_access deny !Safe_ports
+http_access deny CONNECT !SSL_ports
+http_access allow all
+
+icp_access allow all
+icp_port 3130
+
+strip_query_terms off
+
+# Pattern matching
+refresh_pattern ^ftp: 1440 20% 10080
+refresh_pattern ^gopher: 1440 0% 1440
+# refresh_pattern -i (/cgi-bin/|\?) 0 0% 0
+refresh_pattern . 1440 0% 1440
+
+url_rewrite_program /usr/bin/java -jar /etc/squid/url-rewriter.jar 10.196.4.48 http app-podds.sbetprod.ads 8080 http auth-podds.sbetprod.ads 8080
+url_rewrite_children 10
+#run rewriters in multi-threaded mode
+url_rewrite_concurrency 10
+debug_options ALL,1
+
+# For purging
+acl AdminBoxes src 127.0.0.1
+acl Purge method Purge
+http_access allow AdminBoxes Purge
+http_access deny Purge
+
+#important - collapses multiple requests for the same resource
+collapsed_forwarding on
+forwarded_for on
+
+
+
+
