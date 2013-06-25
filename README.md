@@ -19,12 +19,16 @@ Manages Squid instalaltion and configuration.
 ### The Squid RPM
 
 squid::filestore:           'puppet:///files/squid'
+
 squid::package_file:        'squid-2.6.STABLE21-6.el5.x86_64.rpm'
+
 
 ### Logging
 
 squid::access_log:          '/var/log/squid/access.log squid'
+
 squid::cache_log:           '/var/log/squid/cache.log'
+
 squid::cache_store_log:     '/var/log/squid/store.log'
 
 ### Caching rules
@@ -42,15 +46,21 @@ squid::cache_peers: [
 ### URL rewriting
 
 squid::url_rewrite_program: '/usr/java/latest/bin/java -cp %CLASSPATH% foo.MainClass %param1% ... %paramN%'
+
 squid::url_rewrite_children: 10
+
 squid::url_rewrite_concurrency: 10
 
 ### Miscelaneous
 
 squid::default_site: 'balancer.mytomcatservers.mydomain.org'
+
 squid::user:         'squid'
+
 squid::http_port:    '3128'
+
 squid::cache_mem:    '1536 MB'
+
 
 ## Support
 
